@@ -17,19 +17,21 @@ export default class App extends Component {
         { label: 'Drink Coffee', important: false, id: 1 },
         { label: 'Make Awesome App', important: true, id: 2 },
         { label: 'Have a lunch', important: false, id: 3 }
-      ]
+      ],
+      filterStatus:'all'
     };
+    window.state = this.state;
   }
 
   deleteItem = (id) => {
     this.setState(({ todoData }) => ({ todoData: todoData.filter(el => el.id !== id) }));
   }
 
-  addItem = () => {
+  addItem = (label) => {
 
     this.setState(({ todoData, latestId }) => {
       const newData = [].concat(todoData,
-        { label: 'Something else', important: false, id: latestId }
+        { label: label, important: false, id: latestId }
       );
       return { todoData: newData, latestId: latestId + 1}
     });
@@ -55,17 +57,42 @@ export default class App extends Component {
     });
   }
 
+  onChangeFilterStatus = (status) => {
+    this.setState({
+      filterStatus:status
+    });
+  }
+
+  filter = () => {
+    let data;
+    const { filterStatus, todoData } = this.state;
+    switch(filterStatus){
+      case 'active':
+       data = todoData.filter(el => !el.done);
+        break;
+      case 'done':
+        data = todoData.filter(el => el.done);
+        break;
+      case 'all':
+        data = todoData;
+        break;
+      default:
+        data = todoData;
+    }
+    return data;
+  }
 
   render() {
+    const visibleItems = this.filter();
     return (
       <div className="todo-app">
         <AppHeader toDo={1} done={3}/>
         <div className="top-panel d-flex">
           <SearchPanel/>
-          <ItemStatusFilter/>
+          <ItemStatusFilter onChangeFilterStatus={this.onChangeFilterStatus} filterStatus={this.state.filterStatus}/>
         </div>
 
-        <TodoList todos={this.state.todoData} onDeleted={this.deleteItem}
+        <TodoList todos={visibleItems} onDeleted={this.deleteItem}
                   onToggleImportant={this.onToggleImportant}
                   onToggleDone={this.onToggleDone}
         />
